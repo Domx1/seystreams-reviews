@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Customer Reviews</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+      color: #222;
+      background: #fff;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      margin-bottom: 35px;
+      color: #555;
+    }
+
+    .review {
+      padding: 20px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .review:first-child {
+      border-top: 1px solid #ddd;
+    }
+
+    .review-meta {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .review-text {
+      white-space: pre-wrap;
+    }
+
+    .form-section {
+      margin-top: 50px;
+      padding-top: 10px;
+    }
+
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+    }
+
+    input {
+      max-width: 180px;
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 22px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background: #222;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .loading {
+      color: #666;
+    }
+
+    .notice {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        margin-top: 25px;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Customer Reviews</h1>
+
+  <p class="intro">
+    Read what customers have shared about their experience with the service and support.
+  </p>
+
+  <div id="reviews">
+    <p class="loading">Loading reviews...</p>
+  </div>
+
+
+  <div class="form-section">
+
+    <h2>Share Your Experience</h2>
+
+    <p>
+      Been using the service? Feel free to leave your honest feedback below.
+    </p>
+
+    <form id="reviewForm">
+
+      <label for="mobile">Last 3 digits of your mobile number</label>
+
+      <input
+        type="text"
+        id="mobile"
+        maxlength="3"
+        inputmode="numeric"
+        pattern="[0-9]{3}"
+        placeholder="123"
+        required
+      >
+
+      <div class="notice">
+        Only the last 3 digits will be displayed publicly.
+      </div>
+
+
+      <label for="review">Your Review</label>
+
+      <textarea
+        id="review"
+        placeholder="Tell us about your experience..."
+        required
+      ></textarea>
+
+
+      <button type="submit" id="submitButton">
+        Submit Review
+      </button>
+
+      <div class="notice">
+        Reviews are checked before being published.
+      </div>
+
+      <div id="message" class="message"></div>
+
+    </form>
+
+  </div>
+
+
+<script>
+
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzU5Z_eYtc2meZvIJAHZ_ephqBhwGkbm3qnGGw9qissQTD-t7p5tdEHPPiyYV7-LLrXOA/exec";
+
+
+async function loadReviews() {
+
+  const container = document.getElementById("reviews");
+
+  try {
+
+    const response = await fetch(API_URL);
+    const data = await response.json();
+
+    container.innerHTML = "";
+
+    if (!data.reviews || data.reviews.length === 0) {
+
+      container.innerHTML =
+        "<p>No reviews have been published yet.</p>";
+
+      return;
+    }
+
+    data.reviews.forEach(review => {
+
+      const reviewBox = document.createElement("div");
+      reviewBox.className = "review";
+
+      const meta = document.createElement("div");
+      meta.className = "review-meta";
+      meta.textContent =
+        review.date + " • Mobile " + review.mobile;
+
+      const text = document.createElement("div");
+      text.className = "review-text";
+      text.textContent = review.review;
+
+      reviewBox.appendChild(meta);
+      reviewBox.appendChild(text);
+
+      container.appendChild(reviewBox);
+
+    });
+
+  } catch (error) {
+
+    container.innerHTML =
+      "<p>Unable to load reviews at the moment.</p>";
+
+  }
+
+}
+
+
+document
+  .getElementById("reviewForm")
+  .addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const mobile =
+      document.getElementById("mobile").value.trim();
+
+    const review =
+      document.getElementById("review").value.trim();
+
+    const button =
+      document.getElementById("submitButton");
+
+    const message =
+      document.getElementById("message");
+
+
+    if (!/^\d{3}$/.test(mobile)) {
+
+      message.textContent =
+        "Please enter exactly the last 3 digits of your mobile number.";
+
+      return;
+    }
+
+
+    if (review.length < 5) {
+
+      message.textContent =
+        "Please enter your review.";
+
+      return;
+    }
+
+
+    button.disabled = true;
+    button.textContent = "Submitting...";
+
+    message.textContent = "";
+
+
+    try {
+
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+
+        body: JSON.stringify({
+          mobile: mobile,
+          review: review
+        })
+      });
+
+
+      message.textContent =
+        "Thank you! Your review has been submitted and is awaiting approval. 🙏";
+
+      document
+        .getElementById("reviewForm")
+        .reset();
+
+
+    } catch (error) {
+
+      message.textContent =
+        "Something went wrong. Please try again.";
+
+    }
+
+
+    button.disabled = false;
+    button.textContent = "Submit Review";
+
+  });
+
+
+loadReviews();
+
+</script>
+
+</body>
+</html>
