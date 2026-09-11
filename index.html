@@ -275,10 +275,29 @@
       margin-top: 18px;
     }
 
-.submit-button  {
-  background: #111827;
+.submit-button {
+  border: 0;
+  border-radius: 11px;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, #1f2a44 0%, #111827 100%);
   color: #fff;
-  box-shadow: 0 9px 24px rgba(17, 24, 39, 0.18);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 9px 24px rgba(17, 24, 39, 0.22);
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+
+.submit-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.28);
+  background: linear-gradient(180deg, #26324f 0%, #0d1320 100%);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .submit-button:hover {
